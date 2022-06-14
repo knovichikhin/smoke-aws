@@ -125,7 +125,7 @@ public class App {
         let infrastructureTSFromFilePath = "\(infrastructureGeneratedSubDirectoryPath)/infrastructure.ts"
         let infrastructureTSToFilePath = "\(infrastructureSubDirectoryPath)/bin"
         
-        fileContents += "cp -r \(infrastructureTSFromFilePath) \(infrastructureTSToFilePath)\n\n"
+        fileContents += "cp -r -f \(infrastructureTSFromFilePath) \(infrastructureTSToFilePath)\n\n"
         
         let outputFilePath = "\(infrastructureGeneratedSubDirectoryPath)/\(fileName)"
         
