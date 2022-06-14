@@ -118,7 +118,7 @@ public class App {
             }
         }
         
-        let checkoutFromFilePath = "\(currentDirectoryPath)/.build/checkouts/smoke-aws/infrastructure"
+        let checkoutFromFilePath = "\(currentDirectoryPath)/.build/checkouts/smoke-aws/infrastructure/*"
         
         fileContents += "cp -r \(checkoutFromFilePath) \(infrastructureSubDirectoryPath)\n\n"
         
