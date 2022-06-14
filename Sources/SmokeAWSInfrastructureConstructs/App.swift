@@ -5,6 +5,12 @@
 import Foundation
 import Algorithms
 
+public protocol Stack {
+    func getImportStatements() -> [String]
+    
+    func getInfrastructureTsStatements(appToken: String) -> [String]
+}
+
 enum AppSynthErrors: Error {
     case failedDataConversion(description: String, error: Error?)
     case unableToWriteToFile(path: String, error: Error)
@@ -41,7 +47,8 @@ public class App {
         var allImportStatements: [String] = []
         var allBodyStatements: [String] = []
         self.stacks.forEach { stack in
-            let (importStatements, bodyStatements) = stack.getInfrastructureTsStatements(appToken: "app")
+            let importStatements = stack.getImportStatements()
+            let bodyStatements = stack.getInfrastructureTsStatements(appToken: "app")
             
             allImportStatements.append(contentsOf: importStatements)
             allBodyStatements.append(contentsOf: bodyStatements)
@@ -145,8 +152,4 @@ public class App {
         
         print("\(fileName) written to '\(outputFilePath)'")
     }
-}
-
-public protocol Stack {
-    func getInfrastructureTsStatements(appToken: String) -> (importStatements: [String], bodyStatements: [String])
 }
