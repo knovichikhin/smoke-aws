@@ -24,6 +24,15 @@ public class App {
             return
         }
         
+        try synthInfrastructureTs()
+        try synthScript()
+    }
+    
+    internal func add(stack: Stack) {
+        self.stacks.append(stack)
+    }
+    
+    private func synthInfrastructureTs() throws {
         var fileContents = """
             #!/usr/bin/env node
             import * as cdk from 'aws-cdk-lib';
@@ -53,16 +62,54 @@ public class App {
             fileContents += bodyStatement
         }
         
-        let infrastructureSubDirectoryName = ".infrastructure_generated"
+        let infrastructureGeneratedSubDirectoryName = ".infrastructure_generated"
+        let fileName = "infrastructure.ts"
+        
+        // write the created script to disk
+        let fileManager = FileManager.default
+        let currentDirectoryPath = fileManager.currentDirectoryPath
+        let infrastructureGeneratedSubDirectoryPath = "\(currentDirectoryPath)/\(infrastructureGeneratedSubDirectoryName)"
+        
+        let outputFilePath = "\(infrastructureGeneratedSubDirectoryPath)/\(fileName)"
+        
+        if !FileManager.default.fileExists(atPath: infrastructureGeneratedSubDirectoryPath) {
+            do {
+                try FileManager.default.createDirectory(atPath: infrastructureGeneratedSubDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                throw AppSynthErrors.unableToCreateDirectory(path: infrastructureGeneratedSubDirectoryPath, error: error)
+            }
+        }
+        
+        do {
+            let outputFileURL = URL(fileURLWithPath: outputFilePath)
+            guard let outputScriptData = fileContents.data(using: .utf8) else {
+                throw AppSynthErrors.failedDataConversion(description: "Unable convert output script to Data", error: nil)
+            }
+            try outputScriptData.write(to: outputFileURL)
+        } catch {
+            throw AppSynthErrors.unableToWriteToFile(path: outputFilePath, error: error)
+        }
+        
+        // allow the script to be executed
+        //try fileManager.setAttributes([.posixPermissions: 0o744], ofItemAtPath: outputFilePath)
+        
+        print("\(fileName) written to '\(outputFilePath)'")
+    }
+    
+    private func synthScript() throws {
+        var fileContents = "#!/bin/bash\n\n"
+        
+        let infrastructureSubDirectoryName = ".infrastructure"
+        let infrastructureGeneratedSubDirectoryName = ".infrastructure_generated"
         let fileName = "infrastructure.ts"
         
         // write the created script to disk
         let fileManager = FileManager.default
         let currentDirectoryPath = fileManager.currentDirectoryPath
         let infrastructureSubDirectoryPath = "\(currentDirectoryPath)/\(infrastructureSubDirectoryName)"
+        let infrastructureGeneratedSubDirectoryPath = "\(currentDirectoryPath)/\(infrastructureGeneratedSubDirectoryName)"
         
-        let outputFilePath = "\(infrastructureSubDirectoryPath)/\(fileName)"
-        
+
         if !FileManager.default.fileExists(atPath: infrastructureSubDirectoryPath) {
             do {
                 try FileManager.default.createDirectory(atPath: infrastructureSubDirectoryPath, withIntermediateDirectories: true, attributes: nil)
@@ -70,6 +117,17 @@ public class App {
                 throw AppSynthErrors.unableToCreateDirectory(path: infrastructureSubDirectoryPath, error: error)
             }
         }
+        
+        let checkoutFromFilePath = "\(currentDirectoryPath)/.build/checkouts/smoke-aws/infrastructure"
+        
+        fileContents += "cp -r \(checkoutFromFilePath) \(infrastructureSubDirectoryPath)\n\n"
+        
+        let infrastructureTSFromFilePath = "\(infrastructureGeneratedSubDirectoryPath)/infrastructure.ts"
+        let infrastructureTSToFilePath = "\(infrastructureSubDirectoryPath)/bin"
+        
+        fileContents += "cp -r \(infrastructureTSFromFilePath) \(infrastructureTSToFilePath)\n\n"
+        
+        let outputFilePath = "\(infrastructureGeneratedSubDirectoryPath)/\(fileName)"
         
         do {
             let outputFileURL = URL(fileURLWithPath: outputFilePath)
@@ -85,10 +143,6 @@ public class App {
         try fileManager.setAttributes([.posixPermissions: 0o744], ofItemAtPath: outputFilePath)
         
         print("\(fileName) written to '\(outputFilePath)'")
-    }
-    
-    internal func add(stack: Stack) {
-        self.stacks.append(stack)
     }
 }
 
