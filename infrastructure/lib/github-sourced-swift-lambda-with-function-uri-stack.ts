@@ -9,6 +9,7 @@ export interface GithubSourcedSwiftLambdaWithFunctionUriStackProps {
   readonly stackProps?: StackProps
 
   readonly executableName: string
+  readonly infrastructureExecutableName: string
   readonly swiftVersionString: string
   readonly amazonLinuxRuntimeDockerImage?: string
   readonly awsRegion: string
@@ -23,6 +24,7 @@ export class GithubSourcedSwiftLambdaWithFunctionUriStack extends Stack {
     super(scope, id, props.stackProps);
 
     const executableName = props.executableName;
+    const infrastructureExecutableName = props.infrastructureExecutableName;
     const swiftVersionString = props.swiftVersionString;
     const amazonLinuxRuntimeDockerImage = props.amazonLinuxRuntimeDockerImage ?? "public.ecr.aws/amazonlinux/amazonlinux:2.0.20220426.0"
     const awsRegion = props.awsRegion;
@@ -78,11 +80,25 @@ export class GithubSourcedSwiftLambdaWithFunctionUriStack extends Stack {
           REPOSITORY_URI: ecrRepository.repositoryUri,
         },
         commands: [
+          'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws',
+          `echo "Running ${infrastructureExecutableName} using Swift compiler version ${swiftVersionString}"`,
+
+          `SWIFT_DOCKER_IMAGE=${swiftDockerImage}`,
+          `INFRASTRUCTURE_RUN_COMMAND="RUN swift run -c release ${infrastructureExecutableName}"`,
+          'docker run --rm -v "$(pwd)":/workspace -w /workspace ${SWIFT_DOCKER_IMAGE} bash -cl "${INFRASTRUCTURE_RUN_COMMAND}',
+          
+          'ls',
+          'CURRENT_DIRECTORY=$(pwd)',
+          '${CURRENT_DIRECTORY}/.infrastructure_generated/script',
+          'cd ${CURRENT_DIRECTORY}/.infrastructure',
+          'ls',
+
           'npm ci',
           'npm run build',
           'npx cdk synth',
 
-          'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws',
+          'cd ${CURRENT_DIRECTORY}',
+
           `echo "Building ${executableName} using Swift compiler version ${swiftVersionString}"`,
 
           `echo 'FROM ${swiftDockerImage}' > Dockerfile${executableName}`,
@@ -104,7 +120,7 @@ export class GithubSourcedSwiftLambdaWithFunctionUriStack extends Stack {
           `AWS_REGION=${awsRegion}`,
           'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REPOSITORY_URI}',
 
-          'docker build --file ${DOCKERFILE_NAME} --tag ${IMAGE_URI} .',
+          'docker build --file ${DOCKERFILE_NAME} -v "$(pwd)":/workspace -w /workspace --tag ${IMAGE_URI} .',
           'docker push ${IMAGE_URI}'
         ],
         rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],

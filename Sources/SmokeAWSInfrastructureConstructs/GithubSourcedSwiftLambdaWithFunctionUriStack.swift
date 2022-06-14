@@ -4,6 +4,7 @@
 
 public struct GithubSourcedSwiftLambdaWithFunctionUriStack: Stack {
     let executableName: String
+    let infrastructureExecutableName: String
     let stackName: String
     let swiftVersionString: String
     let awsRegion: String
@@ -16,15 +17,17 @@ public struct GithubSourcedSwiftLambdaWithFunctionUriStack: Stack {
     public init(app: App,
                 stackName: String,
                 executableName: String,
-                swiftVersionString: String,
+                infrastructureExecutableName: String,
+                swiftVersion: String,
                 awsRegion: String,
                 repositoryOwner: String,
                 repositoryName: String,
                 repositoryBranch: String,
                 sourceConnectionArn: String) {
         self.executableName = executableName
+        self.infrastructureExecutableName = infrastructureExecutableName
         self.stackName = stackName
-        self.swiftVersionString = swiftVersionString
+        self.swiftVersionString = swiftVersion
         self.awsRegion = awsRegion
         self.repositoryOwner = repositoryOwner
         self.repositoryName = repositoryName
@@ -41,6 +44,7 @@ public struct GithubSourcedSwiftLambdaWithFunctionUriStack: Stack {
         let bodyStatement = """
             new GithubSourcedSwiftLambdaWithFunctionUriStack(\(appToken), '\(self.stackName)', {
               executableName: "\(self.executableName)",
+              infrastructureExecutableName: "\(self.infrastructureExecutableName)",
               swiftVersionString: "\(self.swiftVersionString)",
               awsRegion: "\(self.awsRegion)",
               repositoryOwner: "\(self.repositoryOwner)",
