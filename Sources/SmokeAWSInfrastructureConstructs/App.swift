@@ -56,6 +56,7 @@ public class App {
         
         let uniquedImportStatements = allImportStatements.uniqued()
         uniquedImportStatements.forEach { importStatement in
+            fileContents += "\n"
             fileContents += importStatement
         }
         
@@ -96,9 +97,6 @@ public class App {
         } catch {
             throw AppSynthErrors.unableToWriteToFile(path: outputFilePath, error: error)
         }
-        
-        // allow the script to be executed
-        //try fileManager.setAttributes([.posixPermissions: 0o744], ofItemAtPath: outputFilePath)
         
         print("\(fileName) written to '\(outputFilePath)'")
     }
