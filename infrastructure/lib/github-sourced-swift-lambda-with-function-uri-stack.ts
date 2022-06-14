@@ -5,14 +5,27 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import { Construct } from 'constructs';
 
-export class AwsSwiftLambdaExampleStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, props);
+export interface GithubSourcedSwiftLambdaWithFunctionUriStackProps {
+  readonly stackProps?: StackProps
 
-    const executableName = "AwsSwiftLambdaExample"
-    const swiftVersionString = "5.6.1"
-    const amazonLinuxRuntimeDockerImage = "public.ecr.aws/amazonlinux/amazonlinux:2.0.20220426.0"
-    const awsRegion = "us-west-2"
+  readonly executableName: string
+  readonly swiftVersionString: string
+  readonly amazonLinuxRuntimeDockerImage?: string
+  readonly awsRegion: string
+  readonly repositoryOwner: string
+  readonly repositoryName: string
+  readonly repositoryBranch: string
+  readonly sourceConnectionArn: string
+}
+
+export class GithubSourcedSwiftLambdaWithFunctionUriStack extends Stack {
+  constructor(scope: Construct, id: string, props: GithubSourcedSwiftLambdaWithFunctionUriStackProps) {
+    super(scope, id, props.stackProps);
+
+    const executableName = props.executableName;
+    const swiftVersionString = props.swiftVersionString;
+    const amazonLinuxRuntimeDockerImage = props.amazonLinuxRuntimeDockerImage ?? "public.ecr.aws/amazonlinux/amazonlinux:2.0.20220426.0"
+    const awsRegion = props.awsRegion;
 
     const swiftDockerImage = `public.ecr.aws/docker/library/swift:${swiftVersionString}-amazonlinux2`;
 
@@ -53,8 +66,8 @@ export class AwsSwiftLambdaExampleStack extends Stack {
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: false,
       synth: new pipelines.CodeBuildStep('Synth', {
-        input: pipelines.CodePipelineSource.connection('tachyonics/aws-swift-lambda-dev', 'cdk', {
-          connectionArn: 'arn:aws:codestar-connections:us-west-2:269958626565:connection/9938384a-beab-40a6-b197-0cce9fee3eab',
+        input: pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
+          connectionArn: props.sourceConnectionArn,
         }),
         buildEnvironment: {
           buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_3,
