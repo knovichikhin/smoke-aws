@@ -25,7 +25,7 @@ public class App {
         }
         
         var fileContents = """
-            #!/usr/bin/env node"
+            #!/usr/bin/env node
             import * as cdk from 'aws-cdk-lib';
             """
         
@@ -38,18 +38,18 @@ public class App {
             allBodyStatements.append(contentsOf: bodyStatements)
         }
         
-        fileContents += """
-
-            const app = new cdk.App();
-            """
-        
         let uniquedImportStatements = allImportStatements.uniqued()
         uniquedImportStatements.forEach { importStatement in
             fileContents += importStatement
         }
         
+        fileContents += "\n\n"
+        fileContents += """
+            const app = new cdk.App();
+            """
+        
         allBodyStatements.forEach { bodyStatement in
-            fileContents += "\n"
+            fileContents += "\n\n"
             fileContents += bodyStatement
         }
         
