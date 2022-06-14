@@ -126,6 +126,7 @@ public class App {
         let infrastructureTSToFilePath = "\(infrastructureSubDirectoryPath)/bin"
         
         fileContents += "cp -r -f \(infrastructureTSFromFilePath) \(infrastructureTSToFilePath)\n\n"
+        fileContents += "chmod 744 \(infrastructureSubDirectoryPath)/*\n\n"
         
         let outputFilePath = "\(infrastructureGeneratedSubDirectoryPath)/\(fileName)"
         
