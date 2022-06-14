@@ -120,7 +120,7 @@ public class App {
         
         let checkoutFromFilePath = "\(currentDirectoryPath)/.build/checkouts/smoke-aws/infrastructure/*"
         
-        fileContents += "cp -r \(checkoutFromFilePath) \(infrastructureSubDirectoryPath)\n\n"
+        fileContents += "cp -r -f \(checkoutFromFilePath) \(infrastructureSubDirectoryPath)\n\n"
         
         let infrastructureTSFromFilePath = "\(infrastructureGeneratedSubDirectoryPath)/infrastructure.ts"
         let infrastructureTSToFilePath = "\(infrastructureSubDirectoryPath)/bin"
