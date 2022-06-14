@@ -101,7 +101,7 @@ public class App {
         
         let infrastructureSubDirectoryName = ".infrastructure"
         let infrastructureGeneratedSubDirectoryName = ".infrastructure_generated"
-        let fileName = "infrastructure.ts"
+        let fileName = "script"
         
         // write the created script to disk
         let fileManager = FileManager.default
