@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { GithubSourcedSwiftLambdaWithFunctionUriStack } from '../lib/github-sourced-swift-lambda-with-function-uri-stack';
 
