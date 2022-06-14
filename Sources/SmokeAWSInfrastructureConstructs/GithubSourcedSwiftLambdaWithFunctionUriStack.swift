@@ -12,6 +12,7 @@ public struct GithubSourcedSwiftLambdaWithFunctionUriStack: Stack {
     let repositoryBranch: String
     let sourceConnectionArn: String
     
+    @discardableResult
     public init(app: App,
                 stackName: String,
                 executableName: String,
