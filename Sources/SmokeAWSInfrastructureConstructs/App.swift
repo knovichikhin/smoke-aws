@@ -5,6 +5,12 @@
 import Foundation
 import Algorithms
 
+enum AppSynthErrors: Error {
+    case failedDataConversion(description: String, error: Error?)
+    case unableToWriteToFile(path: String, error: Error)
+    case unableToCreateDirectory(path: String, error: Error)
+}
+
 public class App {
     internal var stacks: [Stack]
     
@@ -12,7 +18,7 @@ public class App {
         self.stacks = []
     }
     
-    deinit {
+    public func synth() throws {
         guard self.stacks.isEmpty else {
             // nothing to do
             return
@@ -61,30 +67,22 @@ public class App {
             do {
                 try FileManager.default.createDirectory(atPath: infrastructureSubDirectoryPath, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("Unable to create Directory \(infrastructureSubDirectoryPath): \(String(describing: error))")
-                return
+                throw AppSynthErrors.unableToCreateDirectory(path: infrastructureSubDirectoryPath, error: error)
             }
         }
         
         do {
             let outputFileURL = URL(fileURLWithPath: outputFilePath)
             guard let outputScriptData = fileContents.data(using: .utf8) else {
-                print("Unable convert \(fileName) file contents to Data")
-                return
+                throw AppSynthErrors.failedDataConversion(description: "Unable convert output script to Data", error: nil)
             }
             try outputScriptData.write(to: outputFileURL)
         } catch {
-            print("Unable write to path \(outputFilePath): \(String(describing: error))")
-            return
+            throw AppSynthErrors.unableToWriteToFile(path: outputFilePath, error: error)
         }
         
-        do {
-            // allow the script to be executed
-            try fileManager.setAttributes([.posixPermissions: 0o744], ofItemAtPath: outputFilePath)
-        } catch {
-            print("Unable to change attributes on path \(outputFilePath): \(String(describing: error))")
-            return
-        }
+        // allow the script to be executed
+        try fileManager.setAttributes([.posixPermissions: 0o744], ofItemAtPath: outputFilePath)
         
         print("\(fileName) written to '\(outputFilePath)'")
     }
