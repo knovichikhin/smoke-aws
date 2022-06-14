@@ -19,7 +19,7 @@ public class App {
     }
     
     public func synth() throws {
-        guard self.stacks.isEmpty else {
+        guard !self.stacks.isEmpty else {
             // nothing to do
             return
         }
