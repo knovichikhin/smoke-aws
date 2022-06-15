@@ -1,7 +1,6 @@
 import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { StackSteps } from 'aws-cdk-lib/pipelines';
 import { Construct } from 'constructs';
 
 
@@ -58,24 +57,20 @@ export class SwiftLambdaWithFunctionUri {
     ];
   }
 
-  getStackStepsForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): StackSteps[] {
+  addStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps) {
     if (this.ecrRepository === undefined) {
       throw new Error("SwiftLambdaWithFunctionUri not initialized correctly.")
     }
 
     const code = lambda.DockerImageCode.fromEcr(this.ecrRepository, {
-      tagOrDigest: commitId
+      tagOrDigest: "commitId"
     });
 
-    let stack = new SwiftLambdaWithFunctionUriDeploymentStack(scope, `${this.executableName}DeploymentStack`, {
+    new SwiftLambdaWithFunctionUriDeploymentStack(scope, `${this.executableName}DeploymentStack`, {
       stackProps: stackProps,
       executableName: this.executableName,
       code: code
     });
-
-    return [{
-      stack: stack,
-    }];
   }
 }
 
