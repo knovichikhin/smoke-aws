@@ -46,7 +46,7 @@ export class SwiftLambdaWithFunctionUri {
 
       `cat ${dockerFileName}`,
       `DOCKERFILE_NAME=${dockerFileName}`,
-      'IMAGE_URI=${REPOSITORY_URI}:${CODEBUILD_RESOLVED_SOURCE_VERSION}',
+      `IMAGE_URI=\${REPOSITORY_URI_${this.executableName}}:\${CODEBUILD_RESOLVED_SOURCE_VERSION}`,
 
       `aws ecr get-login-password --region ${awsRegion} | docker login --username AWS --password-stdin \${REPOSITORY_URI_${this.executableName}}`,
 
