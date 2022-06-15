@@ -33,15 +33,14 @@ export class SwiftLambdaWithFunctionUri {
     return [
       `echo "Building ${this.executableName} using Swift compiler version ${swiftVersionString}"`,
 
-      `echo 'FROM ${swiftDockerImage}' > ${dockerFileName}`,
-      `echo 'RUN swift build -c release --product ${this.executableName} --build-path .build/native --disable-prefetching --static-swift-stdlib' >> Dockerfile${this.executableName}`,
-      `echo 'RUN swift test' >> ${dockerFileName}`,
-      `echo 'COPY .build/native/release/${this.executableName} .build/service/${this.executableName}/' >> ${dockerFileName}`,
+      `SWIFT_DOCKER_IMAGE=${swiftDockerImage}`,
+      `RUN_COMMAND="swift build -c release --product ${this.executableName} --build-path .build/native --disable-prefetching --static-swift-stdlib"`,
+      'docker run --rm -v "$(pwd)":/workspace -w /workspace ${SWIFT_DOCKER_IMAGE} bash -cl "${RUN_COMMAND}"',
 
-      `echo 'FROM ${amazonLinuxRuntimeDockerImage}' >> ${dockerFileName}`,
+      `echo 'FROM ${amazonLinuxRuntimeDockerImage}' > ${dockerFileName}`,
       `echo 'RUN mkdir app' >> ${dockerFileName}`,
       `echo 'WORKDIR /app' >> ${dockerFileName}`,
-      `echo 'COPY --from=0 .build/service/${this.executableName} /app/' >> ${dockerFileName}`,
+      `echo 'COPY .build/native/release/${this.executableName} /app/' >> ${dockerFileName}`,
       `echo 'RUN ls /app/' >> ${dockerFileName}`,
       `echo 'CMD [\"./${this.executableName}\"]' >> ${dockerFileName}`,
 

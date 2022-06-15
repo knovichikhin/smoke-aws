@@ -79,7 +79,6 @@ export class GithubSourcedPipelineStack extends Stack {
       
       'CURRENT_DIRECTORY=$(pwd)',
       'cd ${CURRENT_DIRECTORY}/.infrastructure',
-      'ls',
 
       'npm ci',
       'npm run build',
