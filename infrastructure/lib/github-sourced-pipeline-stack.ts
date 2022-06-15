@@ -105,18 +105,18 @@ export class GithubSourcedPipelineStack extends Stack {
 
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: false,
-      synth: new pipelines.CodeBuildStep('Synth', {
+      synth: new pipelines.ShellStep('Synth', {
         input: pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
           connectionArn: props.sourceConnectionArn,
         }),
-        buildEnvironment: {
-          buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_3,
-          computeType: codebuild.ComputeType.SMALL,
-          privileged: true,
-        },
+        //buildEnvironment: {
+        //  buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_3,
+        //  computeType: codebuild.ComputeType.SMALL,
+        //  privileged: true,
+        //},
         env: env,
         commands: commands,
-        rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
+        //rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
       }),
     });
   }
