@@ -144,11 +144,11 @@ export class GithubSourcedPipelineStack extends Stack {
       }),
     });
 
-    const deploymentStage = new DeploymentStage(this, "DeploymentStage", {
-      pipelineApplications: props.pipelineApplications,
-      commitId: commitId
-    });
+    //const deploymentStage = new DeploymentStage(this, "DeploymentStage", {
+    //  pipelineApplications: props.pipelineApplications,
+    //  commitId: commitId
+    //});
 
-    codePipeline.addStage(deploymentStage);
+    //codePipeline.addStage(deploymentStage);
   }
 }
