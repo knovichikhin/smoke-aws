@@ -81,8 +81,6 @@ export class GithubSourcedPipelineStack extends Stack {
       'cd ${CURRENT_DIRECTORY}/.infrastructure',
       'ls',
 
-      'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash',
-      'nvm install v18.3.0',
       'npm ci',
       'npm run build',
       'npx cdk synth',
@@ -105,18 +103,18 @@ export class GithubSourcedPipelineStack extends Stack {
 
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: false,
-      synth: new pipelines.ShellStep('Synth', {
+      synth: new pipelines.CodeBuildStep('Synth', {
         input: pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
           connectionArn: props.sourceConnectionArn,
         }),
-        //buildEnvironment: {
-        //  buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_3,
-        //  computeType: codebuild.ComputeType.SMALL,
-        //  privileged: true,
-        //},
+        buildEnvironment: {
+          buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+          computeType: codebuild.ComputeType.SMALL,
+          privileged: true,
+        },
         env: env,
         commands: commands,
-        //rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
+        rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
       }),
     });
   }
