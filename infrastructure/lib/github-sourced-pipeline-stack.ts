@@ -85,6 +85,7 @@ export class GithubSourcedPipelineStack extends Stack {
       'npx cdk synth',
 
       'cd ${CURRENT_DIRECTORY}',
+      'cp -r ${CURRENT_DIRECTORY}/.infrastructure/cdk.out ./'
     ];
 
     const thisStack = this;
