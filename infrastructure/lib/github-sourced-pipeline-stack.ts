@@ -81,6 +81,7 @@ export class GithubSourcedPipelineStack extends Stack {
       'cd ${CURRENT_DIRECTORY}/.infrastructure',
       'ls',
 
+      'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash',
       'nvm install v18.3.0',
       'npm ci',
       'npm run build',
@@ -101,8 +102,6 @@ export class GithubSourcedPipelineStack extends Stack {
       commands.push("\n")
       commands.push(...pipelineApplicationCommands);
     });
-
-    var env: Record<string, string> = {}
 
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: false,
