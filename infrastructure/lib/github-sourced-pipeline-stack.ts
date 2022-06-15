@@ -1,4 +1,4 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Stack, StackProps, Stage, StageProps } from 'aws-cdk-lib';
 import * as pipelines from 'aws-cdk-lib/pipelines';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -13,6 +13,27 @@ export interface PipelineApplication {
     swiftDockerImage: string,
     amazonLinuxRuntimeDockerImage: string,
     awsRegion: string): string[];
+
+  getStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): Stack[];
+}
+
+interface DeploymentStageProps {
+  readonly stageProps?: StageProps
+
+  readonly pipelineApplications: PipelineApplication[]
+  readonly commitId: string
+}
+
+class DeploymentStage extends Stage {
+
+  constructor(scope: Construct, id: string, props: DeploymentStageProps) {
+    super(scope, id, props.stageProps);
+    
+    const thisStage = this;
+    props.pipelineApplications.forEach((pipelineApplication) => {
+      pipelineApplication.getStacksForDeploymentStage(thisStage, props.commitId, props.stageProps);
+    });
+  }
 }
 
 export interface GithubSourcedPipelineStackProps {
@@ -101,12 +122,15 @@ export class GithubSourcedPipelineStack extends Stack {
       commands.push(...pipelineApplicationCommands);
     });
 
+    const source = pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
+      connectionArn: props.sourceConnectionArn,
+    });
+    const commitId = source.sourceAttribute('CommitId');
+
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: true,
       synth: new pipelines.CodeBuildStep('Synth', {
-        input: pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
-          connectionArn: props.sourceConnectionArn,
-        }),
+        input: source,
         buildEnvironment: {
           buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
           computeType: codebuild.ComputeType.SMALL,
@@ -117,5 +141,12 @@ export class GithubSourcedPipelineStack extends Stack {
         rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
       }),
     });
+
+    const deploymentStage = new DeploymentStage(this, "DeploymentStage", {
+      pipelineApplications: props.pipelineApplications,
+      commitId: commitId
+    });
+
+    codePipeline.addStage(deploymentStage);
   }
 }

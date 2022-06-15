@@ -1,5 +1,7 @@
-import { Stack } from 'aws-cdk-lib';
+import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 
 export class SwiftLambdaWithFunctionUri {
@@ -53,5 +55,46 @@ export class SwiftLambdaWithFunctionUri {
       'docker build --file ${DOCKERFILE_NAME} --tag ${IMAGE_URI} .',
       'docker push ${IMAGE_URI}'
     ];
+  }
+
+  getStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): Stack[] {
+    if (this.ecrRepository === undefined) {
+      throw new Error("SwiftLambdaWithFunctionUri not initialized correctly.")
+    }
+
+    const code = lambda.DockerImageCode.fromEcr(this.ecrRepository, {
+      tagOrDigest: commitId
+    });
+
+    return [new SwiftLambdaWithFunctionUriDeploymentStack(scope, `${this.executableName}DeploymentStack`, {
+      stackProps: stackProps,
+      executableName: this.executableName,
+      code: code
+    })];
+  }
+}
+
+export interface SwiftLambdaWithFunctionUriDeploymentStackProps {
+  readonly stackProps?: StackProps
+
+  readonly executableName: string
+  readonly code: lambda.DockerImageCode
+}
+
+export class SwiftLambdaWithFunctionUriDeploymentStack extends Stack {
+  constructor(scope: Construct, id: string, props: SwiftLambdaWithFunctionUriDeploymentStackProps) {
+    super(scope, id, props.stackProps);
+
+    const dockerImageFunction = new lambda.DockerImageFunction(this, `${props.executableName}Function`, {
+      code: props.code,
+      functionName: props.executableName
+    });
+
+    const fnUrl = dockerImageFunction.addFunctionUrl();
+
+    new CfnOutput(this, `${props.executableName}FunctionUrl`, {
+      // The .url attributes will return the unique Function URL
+      value: fnUrl.url,
+    });
   }
 }
