@@ -50,7 +50,7 @@ export class SwiftLambdaWithFunctionUri {
 
       `aws ecr get-login-password --region ${awsRegion} | docker login --username AWS --password-stdin \${REPOSITORY_URI_${this.executableName}}`,
 
-      'docker build --file ${DOCKERFILE_NAME} -v "$(pwd)":/workspace -w /workspace --tag ${IMAGE_URI} .',
+      'docker build --file ${DOCKERFILE_NAME} --tag ${IMAGE_URI} .',
       'docker push ${IMAGE_URI}'
     ];
   }
