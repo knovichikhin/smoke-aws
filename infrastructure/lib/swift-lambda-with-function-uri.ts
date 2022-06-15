@@ -48,7 +48,7 @@ export class SwiftLambdaWithFunctionUri {
 
       `cat ${dockerFileName}`,
       `DOCKERFILE_NAME=${dockerFileName}`,
-      `IMAGE_URI=\${REPOSITORY_URI_${this.executableName}}:\${CODEBUILD_RESOLVED_SOURCE_VERSION}`,
+      `IMAGE_URI=\${REPOSITORY_URI_${this.executableName}}:\${REPOSITORY_IMAGE_TAG}`,
 
       `aws ecr get-login-password --region ${awsRegion} | docker login --username AWS --password-stdin \${REPOSITORY_URI_${this.executableName}}`,
 
@@ -57,7 +57,7 @@ export class SwiftLambdaWithFunctionUri {
     ];
   }
 
-  getStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): Stack[] {
+  addStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps) {
     if (this.ecrRepository === undefined) {
       throw new Error("SwiftLambdaWithFunctionUri not initialized correctly.")
     }
@@ -66,11 +66,11 @@ export class SwiftLambdaWithFunctionUri {
       tagOrDigest: commitId
     });
 
-    return [new SwiftLambdaWithFunctionUriDeploymentStack(scope, `${this.executableName}DeploymentStack`, {
+    new SwiftLambdaWithFunctionUriDeploymentStack(scope, `${this.executableName}DeploymentStack`, {
       stackProps: stackProps,
       executableName: this.executableName,
       code: code
-    })];
+    });
   }
 }
 

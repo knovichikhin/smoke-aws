@@ -14,7 +14,7 @@ export interface PipelineApplication {
     amazonLinuxRuntimeDockerImage: string,
     awsRegion: string): string[];
 
-  getStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): Stack[];
+  addStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): void;
 }
 
 interface DeploymentStageProps {
@@ -31,7 +31,7 @@ class DeploymentStage extends Stage {
     
     const thisStage = this;
     props.pipelineApplications.forEach((pipelineApplication) => {
-      pipelineApplication.getStacksForDeploymentStage(thisStage, props.commitId, props.stageProps);
+      pipelineApplication.addStacksForDeploymentStage(thisStage, props.commitId, props.stageProps);
     });
   }
 }
@@ -126,6 +126,9 @@ export class GithubSourcedPipelineStack extends Stack {
       connectionArn: props.sourceConnectionArn,
     });
 
+    const commitId = source.sourceAttribute('CommitId');
+    env['REPOSITORY_IMAGE_TAG'] = commitId;
+
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: true,
       synth: new pipelines.CodeBuildStep('Synth', {
@@ -140,8 +143,6 @@ export class GithubSourcedPipelineStack extends Stack {
         rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
       }),
     });
-
-    const commitId = source.sourceAttribute('CommitId');
 
     const deploymentStage = new DeploymentStage(this, "DeploymentStage", {
       pipelineApplications: props.pipelineApplications,
