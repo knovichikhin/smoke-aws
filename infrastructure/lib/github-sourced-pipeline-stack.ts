@@ -3,6 +3,7 @@ import * as pipelines from 'aws-cdk-lib/pipelines';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import { StackSteps } from 'aws-cdk-lib/pipelines';
 
 export interface PipelineApplication {
   initializeForStack(stack: Stack): void;
@@ -14,26 +15,7 @@ export interface PipelineApplication {
     amazonLinuxRuntimeDockerImage: string,
     awsRegion: string): string[];
 
-  addStacksForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): void;
-}
-
-interface DeploymentStageProps {
-  readonly stageProps?: StageProps
-
-  readonly pipelineApplications: PipelineApplication[]
-  readonly commitId: string
-}
-
-class DeploymentStage extends Stage {
-
-  constructor(scope: Construct, id: string, props: DeploymentStageProps) {
-    super(scope, id, props.stageProps);
-    
-    const thisStage = this;
-    props.pipelineApplications.forEach((pipelineApplication) => {
-      pipelineApplication.addStacksForDeploymentStage(thisStage, props.commitId, props.stageProps);
-    });
-  }
+  getStackStepsForDeploymentStage(scope: Construct, commitId: string, stackProps?: StackProps): StackSteps[];
 }
 
 export interface GithubSourcedPipelineStackProps {
@@ -144,11 +126,17 @@ export class GithubSourcedPipelineStack extends Stack {
       }),
     });
 
-    //const deploymentStage = new DeploymentStage(this, "DeploymentStage", {
-    //  pipelineApplications: props.pipelineApplications,
-    //  commitId: commitId
-    //});
+    const deploymentStage = new Stage(this, "DeploymentStage");
+    var stackSteps: Array<StackSteps> = [];
+    props.pipelineApplications.forEach((pipelineApplication) => {
+      const pipelineApplicationStackSteps = pipelineApplication.getStackStepsForDeploymentStage(thisStack, commitId, props.stackProps)
 
-    //codePipeline.addStage(deploymentStage);
+      stackSteps.push(...pipelineApplicationStackSteps);
+    });
+
+    const stageDeployment = pipelines.StageDeployment.fromStage(deploymentStage, {
+      stackSteps: stackSteps,
+      stageName: 'Deployment',
+    });
   }
 }
