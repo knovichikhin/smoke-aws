@@ -2,7 +2,6 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import * as pipelines from 'aws-cdk-lib/pipelines';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as ecr from 'aws-cdk-lib/aws-ecr';
 import { Construct } from 'constructs';
 
 export interface PipelineApplication {
@@ -82,6 +81,7 @@ export class GithubSourcedPipelineStack extends Stack {
       'cd ${CURRENT_DIRECTORY}/.infrastructure',
       'ls',
 
+      'nvm install v18.3.0',
       'npm ci',
       'npm run build',
       'npx cdk synth',
