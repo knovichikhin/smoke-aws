@@ -75,12 +75,10 @@ export class GithubSourcedPipelineStack extends Stack {
       `echo "Running ${infrastructureExecutableName} using Swift compiler version ${swiftVersion}"`,
 
       `SWIFT_DOCKER_IMAGE=${swiftDockerImage}`,
-      `INFRASTRUCTURE_RUN_COMMAND="swift run -c release ${infrastructureExecutableName}"`,
+      `INFRASTRUCTURE_RUN_COMMAND="swift run -c release ${infrastructureExecutableName} && .infrastructure_generated/script"`,
       'docker run --rm -v "$(pwd)":/workspace -w /workspace ${SWIFT_DOCKER_IMAGE} bash -cl "${INFRASTRUCTURE_RUN_COMMAND}"',
       
-      'ls',
       'CURRENT_DIRECTORY=$(pwd)',
-      '${CURRENT_DIRECTORY}/.infrastructure_generated/script',
       'cd ${CURRENT_DIRECTORY}/.infrastructure',
       'ls',
 
