@@ -125,7 +125,6 @@ export class GithubSourcedPipelineStack extends Stack {
     const source = pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
       connectionArn: props.sourceConnectionArn,
     });
-    const commitId = source.sourceAttribute('CommitId');
 
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       selfMutation: true,
@@ -141,6 +140,8 @@ export class GithubSourcedPipelineStack extends Stack {
         rolePolicyStatements: [ecrPublicRolePolicyStatement, ecrRolePolicyStatement],
       }),
     });
+
+    const commitId = source.sourceAttribute('CommitId');
 
     const deploymentStage = new DeploymentStage(this, "DeploymentStage", {
       pipelineApplications: props.pipelineApplications,
