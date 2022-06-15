@@ -102,7 +102,7 @@ export class GithubSourcedPipelineStack extends Stack {
     });
 
     const codePipeline = new pipelines.CodePipeline(this, 'Pipeline', {
-      selfMutation: false,
+      selfMutation: true,
       synth: new pipelines.CodeBuildStep('Synth', {
         input: pipelines.CodePipelineSource.connection(`${props.repositoryOwner}/${props.repositoryName}`, props.repositoryBranch, {
           connectionArn: props.sourceConnectionArn,
